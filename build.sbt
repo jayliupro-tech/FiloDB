@@ -1,6 +1,6 @@
 import sbt._
 import sbt.Keys._
-import scoverage.ScoverageKeys._
+
 publishTo := Some(Resolver.file("Unused repo", file("target/unusedrepo")))
 
 
@@ -33,59 +33,38 @@ lazy val jmh = Submodules.jmh
 lazy val gatling = Submodules.gatling
 lazy val grpc = Submodules.grpc
 
-lazy val sonarScanIfLogin = taskKey[Unit]("Run sonarScan only if sonar.login is provided")
-lazy val runAllTests = taskKey[Unit]("Run all tests")
-lazy val root = (project in file("."))
-  .aggregate(coordinator, core, memory, standalone, http, bootstrapper, sparkJobs, kafka, cli, cassandra, query, prometheus, grpc)
-  .settings(
-    name := "filodb-oss",
-    sonarProperties := {
-      val moduleFolders = new java.io.File(".").listFiles
-        .filter(f => f.isDirectory && !f.getName.startsWith("."))
-        .map(_.getName)
-        .toList
-
-      val sourcePaths = moduleFolders.map(f => s"$f/src/main/scala").filter(f => file(f).exists).mkString(",")
-      val testPaths   = moduleFolders.map(f => s"$f/src/test/scala").filter(f => file(f).exists && file(f).list().nonEmpty).mkString(",")
-      val javaBinaryPaths = moduleFolders.map(f => s"${baseDirectory.value}/$f/target/scala-${scalaBinaryVersion.value}/classes")
-        .filter(p => file(p).exists)
-        .mkString(",")
-
-      Map(
-        "sonar.sourceEncoding" -> "UTF-8",
-        "sonar.sources" -> sourcePaths,
-        "sonar.tests" -> testPaths,
-        "sonar.java.binaries" -> javaBinaryPaths,
-        "sonar.exclusions" -> "conf/**,scripts/**,resources/**,target/**,**/jmh/**,**/gatling/**,**/grpc/**,**/standalone/**",
-        "sonar.test.exclusions" -> "test/resources/**,test/scripts/**,**/jmh/**,**/gatling/**,**/grpc/**,**/standalone/**",
-        "sonar.scala.coverage.reportPaths" -> s"target/scala-${scalaBinaryVersion.value}/scoverage-report/scoverage.xml"
-      )
-    },
-    runAllTests := {
-      val log = streams.value.log
-      val modules = Seq(coordinator, core, memory, standalone, http, bootstrapper, sparkJobs,
-        kafka, cli, cassandra, query, prometheus, grpc)
-
-      modules.foreach { mod =>
-//        log.info(s"--> Coverage On: ${mod.id}")
-//        (mod / coverageOn).value
-
-        log.info(s"--> Running tests: ${mod.id}")
-        (mod / Test / test).value
+//lazy val sonarScanIfLogin = taskKey[Unit]("Run sonarScan only if sonar.login is provided")
+//lazy val root = (project in file("."))
+//  .settings(
+//    name := "filodb-oss",
+//    sonarProperties := {
+//      val moduleFolders = new java.io.File(".").listFiles
+//        .filter(f => f.isDirectory && !f.getName.startsWith("."))
+//        .map(_.getName)
+//        .toList
 //
-//        log.info(s"--> Generating coverage report: ${mod.id}")
-//        (mod / coverageReport).value
-      }
-
-//      // Aggregate coverage at root
-//      (coverageAggregate).value
-      log.info("All tests completed.")
-    },
-    sonarScanIfLogin := Def.taskDyn {
-      val login = sys.env.getOrElse("SONAR_LOGIN", "")
-      if (login.trim.isEmpty)
-        Def.task { streams.value.log.warn("Skipping SonarQube scan: SONAR_LOGIN is empty") }
-      else
-        Def.task { sonarScan.value }
-    }.value
-  )
+//      val sourcePaths = moduleFolders.map(f => s"$f/src/main/scala").filter(f => file(f).exists).mkString(",")
+//      val testPaths   = moduleFolders.map(f => s"$f/src/test/scala").filter(f => file(f).exists && file(f).list().nonEmpty).mkString(",")
+//      val javaBinaryPaths = moduleFolders.map(f => s"${baseDirectory.value}/$f/target/scala-${scalaBinaryVersion.value}/classes")
+//        .filter(p => file(p).exists)
+//        .mkString(",")
+//
+//      Map(
+//        "sonar.sourceEncoding" -> "UTF-8",
+//        "sonar.sources" -> sourcePaths,
+//        "sonar.tests" -> testPaths,
+//        "sonar.java.binaries" -> javaBinaryPaths,
+//        "sonar.exclusions" -> "conf/**,scripts/**,resources/**,target/**,**/jmh/**,**/gatling/**,**/grpc/**,**/standalone/**",
+//        "sonar.test.exclusions" -> "test/resources/**,test/scripts/**,**/jmh/**,**/gatling/**,**/grpc/**,**/standalone/**",
+//        "sonar.scala.coverage.reportPaths" -> s"target/scala-${scalaBinaryVersion.value}/scoverage-report/scoverage.xml"
+//      )
+//    },
+//
+//    sonarScanIfLogin := Def.taskDyn {
+//      val login = sys.env.getOrElse("SONAR_LOGIN", "")
+//      if (login.trim.isEmpty)
+//        Def.task { streams.value.log.warn("Skipping SonarQube scan: SONAR_LOGIN is empty") }
+//      else
+//        Def.task { sonarScan.value }
+//    }.value
+//  )
