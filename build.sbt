@@ -34,8 +34,9 @@ lazy val gatling = Submodules.gatling
 lazy val grpc = Submodules.grpc
 
 lazy val sonarScanIfLogin = taskKey[Unit]("Run sonarScan only if sonar.login is provided")
-lazy val runTests = taskKey[Unit]("Run all tests")
+lazy val runAllTests = taskKey[Unit]("Run all tests")
 lazy val root = (project in file("."))
+  .aggregate(coordinator, core, memory, standalone, http, bootstrapper, sparkJobs, kafka, cli, cassandra, query, prometheus, grpc)
   .settings(
     name := "filodb-oss",
     sonarProperties := {
@@ -60,9 +61,38 @@ lazy val root = (project in file("."))
         "sonar.scala.coverage.reportPaths" -> s"target/scala-${scalaBinaryVersion.value}/scoverage-report/scoverage.xml"
       )
     },
-    runTests := {
-      println("Running all tests...")
-      (Test / test).value
+    runAllTests := {
+      val log = streams.value.log
+      log.info("Running all tests with coverage in all submodules...")
+
+      val modules = Seq(
+        coordinator, core, memory, standalone, http, bootstrapper, sparkJobs,
+        kafka, cli, cassandra, query, prometheus, grpc
+      )
+
+      // coverageOn for all submodules
+      modules.foreach { mod =>
+        log.info(s"--> Coverage On: ${mod.id}")
+        (mod / coverageOn).value
+      }
+
+      // run tests for all submodules
+      modules.foreach { mod =>
+        log.info(s"--> Running tests: ${mod.id}")
+        (mod / Test / test).value
+      }
+
+      // coverage report & aggregate
+      modules.foreach { mod =>
+        log.info(s"--> Generating coverage report: ${mod.id}")
+        (mod / coverageReport).value
+      }
+      modules.foreach { mod =>
+        log.info(s"--> Aggregating coverage: ${mod.id}")
+        (mod / coverageAggregate).value
+      }
+
+      log.info("All tests and coverage completed.")
     },
     sonarScanIfLogin := Def.taskDyn {
       val login = sys.env.getOrElse("SONAR_LOGIN", "")
