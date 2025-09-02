@@ -64,7 +64,7 @@ lazy val root = (project in file("."))
       println("Running all tests...")
       (Test / test).value
       (IntegrationTest / it:test).value
-    }
+    },
     sonarScanIfLogin := Def.taskDyn {
       val login = sys.env.getOrElse("SONAR_LOGIN", "")
       if (login.trim.isEmpty)
