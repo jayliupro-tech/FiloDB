@@ -70,11 +70,11 @@ lazy val root = (project in file("."))
         kafka, cli, cassandra, query, prometheus, grpc
       )
 
-      // coverageOn for all submodules
-      modules.foreach { mod =>
-        log.info(s"--> Coverage On: ${mod.id}")
-        (mod / coverageOn).value
-      }
+//      // coverageOn for all submodules
+//      modules.foreach { mod =>
+//        log.info(s"--> Coverage On: ${mod.id}")
+//        (mod / coverageOn).value
+//      }
 
       // run tests for all submodules
       modules.foreach { mod =>
@@ -82,17 +82,17 @@ lazy val root = (project in file("."))
         (mod / Test / test).value
       }
 
-      // coverage report & aggregate
-      modules.foreach { mod =>
-        log.info(s"--> Generating coverage report: ${mod.id}")
-        (mod / coverageReport).value
-      }
-      modules.foreach { mod =>
-        log.info(s"--> Aggregating coverage: ${mod.id}")
-        (mod / coverageAggregate).value
-      }
+//      // coverage report & aggregate
+//      modules.foreach { mod =>
+//        log.info(s"--> Generating coverage report: ${mod.id}")
+//        (mod / coverageReport).value
+//      }
+//      modules.foreach { mod =>
+//        log.info(s"--> Aggregating coverage: ${mod.id}")
+//        (mod / coverageAggregate).value
+//      }
 
-      log.info("All tests and coverage completed.")
+      log.info("All tests completed.")
     },
     sonarScanIfLogin := Def.taskDyn {
       val login = sys.env.getOrElse("SONAR_LOGIN", "")
