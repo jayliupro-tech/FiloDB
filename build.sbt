@@ -1,6 +1,6 @@
 import sbt._
 import sbt.Keys._
-
+import scoverage.ScoverageKeys._
 publishTo := Some(Resolver.file("Unused repo", file("target/unusedrepo")))
 
 
@@ -63,35 +63,22 @@ lazy val root = (project in file("."))
     },
     runAllTests := {
       val log = streams.value.log
-      log.info("Running all tests with coverage in all submodules...")
+      val modules = Seq(coordinator, core, memory, standalone, http, bootstrapper, sparkJobs,
+        kafka, cli, cassandra, query, prometheus, grpc)
 
-      val modules = Seq(
-        coordinator, core, memory, standalone, http, bootstrapper, sparkJobs,
-        kafka, cli, cassandra, query, prometheus, grpc
-      )
-
-//      // coverageOn for all submodules
-//      modules.foreach { mod =>
+      modules.foreach { mod =>
 //        log.info(s"--> Coverage On: ${mod.id}")
 //        (mod / coverageOn).value
-//      }
 
-      // run tests for all submodules
-      modules.foreach { mod =>
         log.info(s"--> Running tests: ${mod.id}")
         (mod / Test / test).value
-      }
-
-//      // coverage report & aggregate
-//      modules.foreach { mod =>
+//
 //        log.info(s"--> Generating coverage report: ${mod.id}")
 //        (mod / coverageReport).value
-//      }
-//      modules.foreach { mod =>
-//        log.info(s"--> Aggregating coverage: ${mod.id}")
-//        (mod / coverageAggregate).value
-//      }
+      }
 
+//      // Aggregate coverage at root
+//      (coverageAggregate).value
       log.info("All tests completed.")
     },
     sonarScanIfLogin := Def.taskDyn {
